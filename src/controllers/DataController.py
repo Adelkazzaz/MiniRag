@@ -2,6 +2,7 @@ from .BaseController import BaseController
 from .ProjectController import ProjectController
 from fastapi import UploadFile
 from models import ResponseSignal
+import re, os
 
 class DataController(BaseController):
     def __init__(self):
@@ -18,9 +19,30 @@ class DataController(BaseController):
         
         return True , ResponseSignal.FILE_VALIDATED_SUCCESS.value
     
-    def generate_unique_filename(self, orig_file_name: str, project_id: str):
-        random_file_name = self.generate_random_string()
+    def generate_unique_filepath(self, orig_file_name: str, project_id: str):
+        random_string = self.generate_random_string()
         project_path = ProjectController().get_project_path(project_id=project_id)
         
-    def get_clean_file_name():
-        pass
+        cleaned_file_name = self.get_clean_file_name(orig_file_name=orig_file_name)
+        
+        random_key = random_string + "_" + cleaned_file_name
+        
+        new_file_path = os.path.join(
+            project_path,
+            random_key
+        )
+        while os.path.exists(new_file_path):
+            random_key = self.generate_random_string()
+            new_file_path = os.path.join(
+                project_path,
+                random_key
+            )
+        return new_file_path, random_key
+        
+    def get_clean_file_name(self, orig_file_name: str):
+        
+        cleaned_file_name = re.sub(r'[^\w.]', '', orig_file_name.strip())
+        
+        cleaned_file_name = cleaned_file_name.replace(" ", "_")
+        
+        return cleaned_file_name
