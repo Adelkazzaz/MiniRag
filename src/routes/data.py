@@ -1,9 +1,13 @@
-from fastapi import FastAPI, APIRouter, Depends, UploadFile, status
+from fastapi import FastAPI, APIRouter, Depends, UploadFile, status, Request
 from fastapi.responses import JSONResponse
 from helpers.config import get_settings, Settings 
 from controllers import DataController, ProjectController, PorcessController
 from models import ResponseSignal
-from .schemas.data_schema import ProcessRequest # type: ignore
+from .schemas.data_schema import ProcessRequest 
+from models.ProjectModel import ProjectModel
+from models.ChunkModel import ChunkModel
+from models.db_schemas import DataChunk
+from bson.objectid import ObjectId
 import aiofiles
 import os
 import logging
@@ -16,8 +20,17 @@ data_router = APIRouter(
 )
 
 @data_router.post("/upload/{project_id}")
-async def upload_data(project_id: str, file: UploadFile,
+async def upload_data(request: Request, project_id: str, file: UploadFile,
                       app_settings: Settings = Depends(get_settings)):
+    
+    project_model = ProjectModel(
+        db_client= request.app.db_client
+    )
+    project = await project_model.grt_project_or_create_one(
+        project_id=project_id
+    )
+    
+    
     datacontroller = DataController()
     is_valid, result_signal = datacontroller.validate_upload_file(file=file)
 
@@ -83,4 +96,15 @@ async def process_endpoint(project_id: str, process_request: ProcessRequest):
             }
         )
     
-    return file_chunks
+    file_chunks_records = [
+        DataChunk(
+            chunk_text = chunk.page_content,
+            chunk_metadata = chunk.metadata,
+            chunk_order = i+1,
+            chunk_project_id = project._id,
+        )
+            for i, chunk in enumerate(file_chunks)
+        ]
+    chunk_model = ChunkModel(
+        db_client=request.app.db_client
+    )
