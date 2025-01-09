@@ -1,4 +1,4 @@
-# Mini RAG From A to Z
+# Mini RAG
 
 ## Overview
 
@@ -83,37 +83,46 @@ This structure provides an overview of the project's organization, making it eas
 ### Installation
 
 1. Clone the repository:
+
     ```sh
     git clone https://github.com/yourusername/miniRag.git
     cd miniRag
     ```
 
 2. Create a virtual environment and activate it:
+
     ```sh
     python -m venv venv
     source venv/bin/activate  # On Windows use `venv\Scripts\activate`
     ```
 
 3. Install the dependencies:
+
     ```sh
     pip install -r src/requirements.txt
     ```
 
 4. Set up environment variables:
+
     ```sh
     cp src/env.txt .env
     # Edit .env file with your configuration
     ```
 
 5. Start the MongoDB service using Docker:
+
     ```sh
     cd docker
+    cp env.txt .env
     docker-compose up -d
     ```
+
+- And Update `.env` file with your credentials
 
 ### Running the Application
 
 1. Run the FastAPI application:
+
     ```sh
     cd src
     ./run.sh
