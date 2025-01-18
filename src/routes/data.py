@@ -1,4 +1,5 @@
 from fastapi import FastAPI, APIRouter, Depends, UploadFile, status, Request
+from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 from helpers.config import get_settings, Settings 
 from controllers import DataController, ProjectController, ProcessController
@@ -104,10 +105,10 @@ async def process_endpoint(request: Request, project_id: str, process_request: P
     
     
     
-    process_comtroller = ProcessController(project_id=project_id)
+    process_controller = ProcessController(project_id=project_id)
     file_content = process_controller.get_file_content(file_id = file_id)
     
-    file_chunks = process_comtroller.process_file_content(
+    file_chunks = process_controller.process_file_content(
         file_id = file_id,
         file_content = file_content,
         chunk_size = chunk_size,

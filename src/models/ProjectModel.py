@@ -31,7 +31,7 @@ class ProjectModel(BaseDataModel):
         project.id = result.inserted_id
         return project
     
-    async def grt_project_or_create_one(self, project_id: str):
+    async def get_project_or_create_one(self, project_id: str):
         record = await self.collection.find_one({
             "project_id": project_id
             })
