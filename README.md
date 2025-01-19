@@ -30,7 +30,7 @@ miniRag/
 │   ├── controllers/
 │   │   ├── BaseController.py
 │   │   ├── DataController.py
-│   │   ├── PorcessController.py
+│   │   ├── ProcessController.py
 │   │   ├── ProjectController.py
 │   │   └── __init__.py
 │   ├── helpers/
@@ -47,7 +47,7 @@ miniRag/
 │   │   │   └── project.py
 │   │   ├── enums/
 │   │   │   ├── DataBaseEnum.py
-│   │   │   ├── PorcessingEnum.py
+│   │   │   ├── ProcessingEnum.py
 │   │   │   ├── ResponseEnum.py
 │   │   │   └── __init__.py
 │   ├── routes/
@@ -134,7 +134,7 @@ This structure provides an overview of the project's organization, making it eas
 
 - **Home**: `GET /api/v1/`
 - **Upload Data**: `POST /api/v1/data/upload/{project_id}`
-- **Process Data**: `POST /api/v1/data/porcess/{project_id}`
+- **Process Data**: `POST /api/v1/data/process/{project_id}`
 
 ### Configuration
 
@@ -148,7 +148,7 @@ The application configuration is managed via environment variables defined in th
 - [OPENAI_API_KEY](http://_vscodecontentref_/37)
 - [FILE_ALLOWED_TYPES](http://_vscodecontentref_/38)
 - [FILE_MAX_SIZE](http://_vscodecontentref_/39)
-- [FILE_DEFAULT_CHANK_SIZE](http://_vscodecontentref_/40)
+- [FILE_DEFAULT_CHUNK_SIZE](http://_vscodecontentref_/40)
 - [MONGODB_URL](http://_vscodecontentref_/41)
 - [MONGODB_DATABASE](http://_vscodecontentref_/42)
 
