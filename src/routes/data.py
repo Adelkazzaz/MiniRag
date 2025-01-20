@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, Depends, UploadFile, File, status, Request
+from fastapi import FastAPI, APIRouter, Depends, UploadFile, File, status, Request, Body
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 from helpers.config import get_settings, Settings 
@@ -94,7 +94,6 @@ async def process_endpoint(request: Request, project_id: str, process_request: P
     overlap_size = process_request.overlap_size
     do_reset = process_request.do_reset
     
-    
     project_model = await ProjectModel.create_instance(
         db_client= request.app.db_client
     )
@@ -116,7 +115,7 @@ async def process_endpoint(request: Request, project_id: str, process_request: P
         )
         
         project_files_ids = [
-            record["asset_name"]
+            record.asset_name  # Use dot notation to access attributes
             for record in project_files
         ]
         
@@ -141,12 +140,12 @@ async def process_endpoint(request: Request, project_id: str, process_request: P
 
     for file_id in project_files_ids:
         
-        file_content = await process_controller.get_file_content(file_id = file_id)
+        file_content = process_controller.get_file_content(file_id = file_id)
         
         if file_content is None:
             logger.error(f"Error while processing file:{file_id}")
             continue
-        
+         
         file_chunks = process_controller.process_file_content(
             file_id = file_id,
             file_content = file_content,
