@@ -1,1 +1,566 @@
-adel KKKKK bdhd
+ Final Words
+ Yeats famously said “Education is not the filling of a pail but the lighting of a
+ f
+ ire.” He wasright butwrongatthesametime4.Youdohaveto“fillthepail”abit,
+ andthese notes are certainly here to help with that part of your education; after all,
+ when you goto interview at Google, and they ask you a trick question about how
+ to use semaphores, it might be good to actually know what a semaphoreis,right?
+ But Yeats’s larger point is obviously on the mark: the real point of education
+ is to get you interested in something, to learn something more about the subject
+ matter on your own and not just what you have to digest to get a good grade in
+ some class. As one of our fathers (Remzi’s dad, Vedat Arpaci) used to say, “Learn
+ beyond the classroom”.
+ Wecreatedthesenotestosparkyourinterestinoperatingsystems, toreadmore
+ about the topic on your own, to talk to your professor about all the exciting re
+search that is going on in the field, and even to get involved with that research. It
+ is a great field(!), full of exciting and wonderful ideas that have shaped computing
+ history in profound and important ways. Andwhileweunderstandthis firewon’t
+ light for all of you, we hope it does for many, or even a few. Becauseoncethatfire
+ is lit, well, that is when you truly become capable of doing something great. And
+ thus the real point of the educational process: to go forth, to study many new and
+ fascinating topics, to learn, to mature, and most importantly, to find something
+ that lights a fire for you.
+ Andrea and Remzi
+ Married couple
+ Professors of Computer Science at the University of Wisconsin
+ Chief Lighters of Fires, hopefully5
+ 4
+ 5
+ If he actually said this; as with many famous quotes, the history of thisgemismurky.
+ If this sounds like we are admitting some past history as arsonists, youareprobably
+ missing the point. Probably. If this sounds cheesy, well, that’s because it is, but you’ll just have
+ to forgive us for that.
+ OPERATING
+ SYSTEMS
+ WWW.OSTEP.ORG
+ [VERSION 1.00]
+xi
+ References
+ [CK+08] “The xv6 Operating System” by Russ Cox, Frans Kaashoek, Robert Morris, Nickolai
+ Zeldovich. From: http://pdos.csail.mit.edu/6.828/2008/index.html. xv6 was
+ developed as a port of the original UNIX version 6 and represents a beautiful, clean, and simple way to
+ understand a modern operating system.
+ [F96] “Six Easy Pieces: Essentials Of Physics Explained By Its Most Brilliant Teacher” by
+ Richard P. Feynman. Basic Books, 1996. This book reprints the six easiest chapters of Feynman’s
+ Lectures on Physics, from 1963. If you like Physics, it is a fantastic read.
+ [HP90] “ComputerArchitecture a Quantitative Approach” (1st ed.) by David A.Patterson and
+ JohnL.Hennessy. Morgan-Kaufman,1990. Abookthatencouragedeachofusatourundergraduate
+ institutions to pursue graduate studies; we later both had the pleasure of working with Patterson, who
+ greatly shaped the foundations of our research careers.
+ [KR88] “The C Programming Language” by Brian Kernighan and Dennis Ritchie. Prentice
+Hall, April 1988. The C programming reference that everyone should have, by the people who invented
+ the language.
+ [K62] “The Structure of Scientific Revolutions” by Thomas S. Kuhn. University of Chicago
+ Press, 1962. A great and famous read about the fundamentals of the scientific process. Mop-up work,
+ anomaly, crisis, and revolution. We are mostly destined to do mop-up work, alas.
+ c
+ ⃝2008–18, ARPACI-DUSSEAU
+ THREE
+ EASY
+ PIECES
+Contents
+ ToEveryone . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . iii
+ ToEducators . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . v
+ ToStudents . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . vi
+ Acknowledgments. . . . . . . . . . . . . . . . . . . . . . . . . . . vii
+ FinalWords . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . x
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . xi
+ 1 ADialogueontheBook 1
+ 2 IntroductiontoOperatingSystems 3
+ 2.1 VirtualizingTheCPU . . . . . . . . . . . . . . . . . . . . . 5
+ 2.2 VirtualizingMemory. . . . . . . . . . . . . . . . . . . . . . 7
+ 2.3 Concurrency . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+ 2.4 Persistence . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+ 2.5 DesignGoals . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+ 2.6 SomeHistory . . . . . . . . . . . . . . . . . . . . . . . . . . 14
+ 2.7 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+ Homework . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 20
+ I Virtualization 21
+ 3 ADialogueonVirtualization 23
+ 4 TheAbstraction:TheProcess 25
+ 4.1 TheAbstraction:AProcess . . . . . . . . . . . . . . . . . . 26
+ 4.2 ProcessAPI . . . . . . . . . . . . . . . . . . . . . . . . . . . 27
+ 4.3 ProcessCreation:ALittleMoreDetail . . . . . . . . . . . . 28
+ 4.4 ProcessStates . . . . . . . . . . . . . . . . . . . . . . . . . . 29
+ 4.5 DataStructures . . . . . . . . . . . . . . . . . . . . . . . . . 31
+ 4.6 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . . 33
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 34
+ xiii
+xiv CONTENTS
+ Homework(Simulation) . . . . . . . . . . . . . . . . . . . . . . . 35
+ 5 Interlude:ProcessAPI 37
+ 5.1 Thefork()SystemCall . . . . . . . . . . . . . . . . . . . 37
+ 5.2 Thewait()SystemCall . . . . . . . . . . . . . . . . . . . 39
+ 5.3 Finally,Theexec()SystemCall . . . . . . . . . . . . . . . 40
+ 5.4 Why?MotivatingTheAPI. . . . . . . . . . . . . . . . . . . 41
+ 5.5 ProcessControlAndUsers . . . . . . . . . . . . . . . . . . 44
+ 5.6 UsefulTools . . . . . . . . . . . . . . . . . . . . . . . . . . . 45
+ 5.7 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . . 45
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 47
+ Homework(Code) . . . . . . . . . . . . . . . . . . . . . . . . . . . 48
+ 6 Mechanism:LimitedDirectExecution 49
+ 6.1 BasicTechnique:LimitedDirectExecution . . . . . . . . . 49
+ 6.2 Problem#1:RestrictedOperations . . . . . . . . . . . . . . 50
+ 6.3 Problem#2:SwitchingBetweenProcesses . . . . . . . . . . 55
+ 6.4 WorriedAboutConcurrency? . . . . . . . . . . . . . . . . . 59
+ 6.5 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . . 60
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 62
+ Homework(Measurement) . . . . . . . . . . . . . . . . . . . . . . 63
+ 7 Scheduling:Introduction 65
+ 7.1 WorkloadAssumptions . . . . . . . . . . . . . . . . . . . . 65
+ 7.2 SchedulingMetrics . . . . . . . . . . . . . . . . . . . . . . . 66
+ 7.3 FirstIn,FirstOut(FIFO) . . . . . . . . . . . . . . . . . . . . 66
+ 7.4 ShortestJobFirst(SJF) . . . . . . . . . . . . . . . . . . . . . 68
+ 7.5 ShortestTime-to-CompletionFirst(STCF) . . . . . . . . . . 69
+ 7.6 ANewMetric:ResponseTime . . . . . . . . . . . . . . . . 70
+ 7.7 RoundRobin . . . . . . . . . . . . . . . . . . . . . . . . . . 71
+ 7.8 IncorporatingI/O . . . . . . . . . . . . . . . . . . . . . . . 73
+ 7.9 NoMoreOracle. . . . . . . . . . . . . . . . . . . . . . . . . 74
+ 7.10 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . . 74
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 75
+ Homework(Simulation) . . . . . . . . . . . . . . . . . . . . . . . 76
+ 8 Scheduling:
+ TheMulti-LevelFeedbackQueue 77
+ 8.1 MLFQ:BasicRules . . . . . . . . . . . . . . . . . . . . . . . 78
+ 8.2 Attempt#1:HowToChangePriority . . . . . . . . . . . . 79
+ 8.3 Attempt#2:ThePriorityBoost . . . . . . . . . . . . . . . . 83
+ 8.4 Attempt#3:BetterAccounting . . . . . . . . . . . . . . . . 84
+ 8.5 TuningMLFQAndOtherIssues . . . . . . . . . . . . . . . 84
+ 8.6 MLFQ:Summary . . . . . . . . . . . . . . . . . . . . . . . . 86
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 87
+ Homework(Simulation) . . . . . . . . . . . . . . . . . . . . . . . 88
+ OPERATING
+ SYSTEMS
+ [VERSION1.00] WWW.OSTEP.ORG
+CONTENTS xv
+ 9 Scheduling:ProportionalShare 89
+ 9.1 BasicConcept:TicketsRepresentYourShare . . . . . . . . 89
+ 9.2 TicketMechanisms . . . . . . . . . . . . . . . . . . . . . . . 91
+ 9.3 Implementation. . . . . . . . . . . . . . . . . . . . . . . . . 92
+ 9.4 AnExample . . . . . . . . . . . . . . . . . . . . . . . . . . . 93
+ 9.5 HowToAssignTickets? . . . . . . . . . . . . . . . . . . . . 94
+ 9.6 WhyNotDeterministic? . . . . . . . . . . . . . . . . . . . . 94
+ 9.7 TheLinuxCompletelyFairScheduler(CFS) . . . . . . . . . 95
+ 9.8 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .100
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .101
+ Homework(Simulation) . . . . . . . . . . . . . . . . . . . . . . .102
+ 10MultiprocessorScheduling(Advanced) 103
+ 10.1 Background:MultiprocessorArchitecture . . . . . . . . . .104
+ 10.2 Don’tForgetSynchronization . . . . . . . . . . . . . . . . .106
+ 10.3 OneFinalIssue:CacheAffinity . . . . . . . . . . . . . . . .107
+ 10.4 Single-QueueScheduling . . . . . . . . . . . . . . . . . . .107
+ 10.5 Multi-QueueScheduling. . . . . . . . . . . . . . . . . . . .109
+ 10.6 LinuxMultiprocessorSchedulers . . . . . . . . . . . . . . .112
+ 10.7 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .112
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .113
+ Homework(Simulation) . . . . . . . . . . . . . . . . . . . . . . .114
+ 11SummaryDialogueonCPUVirtualization 117
+ 12ADialogueonMemoryVirtualization 119
+ 13TheAbstraction:AddressSpaces 121
+ 13.1 EarlySystems . . . . . . . . . . . . . . . . . . . . . . . . . .121
+ 13.2 MultiprogrammingandTimeSharing . . . . . . . . . . . .122
+ 13.3 TheAddressSpace . . . . . . . . . . . . . . . . . . . . . . .123
+ 13.4 Goals. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .125
+ 13.5 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .127
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .128
+ Homework(Code) . . . . . . . . . . . . . . . . . . . . . . . . . . .129
+ 14 Interlude:MemoryAPI 131
+ 14.1 TypesofMemory. . . . . . . . . . . . . . . . . . . . . . . .131
+ 14.2 Themalloc()Call . . . . . . . . . . . . . . . . . . . . . .132
+ 14.3 Thefree()Call . . . . . . . . . . . . . . . . . . . . . . . .134
+ 14.4 CommonErrors . . . . . . . . . . . . . . . . . . . . . . . .134
+ 14.5 UnderlyingOSSupport . . . . . . . . . . . . . . . . . . . .137
+ 14.6 OtherCalls . . . . . . . . . . . . . . . . . . . . . . . . . . .138
+ 14.7 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .138
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .139
+ Homework(Code) . . . . . . . . . . . . . . . . . . . . . . . . . . .140
+ c ⃝2008–18,ARPACI-DUSSEAU
+ THREE
+ EASY
+ PIECES
+xvi CONTENTS
+ 15Mechanism:AddressTranslation 141
+ 15.1 Assumptions . . . . . . . . . . . . . . . . . . . . . . . . . .142
+ 15.2 AnExample . . . . . . . . . . . . . . . . . . . . . . . . . . .142
+ 15.3 Dynamic(Hardware-based)Relocation . . . . . . . . . . .145
+ 15.4 HardwareSupport:ASummary . . . . . . . . . . . . . . .148
+ 15.5 OperatingSystemIssues. . . . . . . . . . . . . . . . . . . .149
+ 15.6 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .152
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .153
+ Homework(Simulation) . . . . . . . . . . . . . . . . . . . . . . .154
+ 16Segmentation 155
+ 16.1 Segmentation:GeneralizedBase/Bounds . . . . . . . . . .155
+ 16.2 WhichSegmentAreWeReferringTo? . . . . . . . . . . . .158
+ 16.3 WhatAboutTheStack? . . . . . . . . . . . . . . . . . . . .159
+ 16.4 SupportforSharing . . . . . . . . . . . . . . . . . . . . . .160
+ 16.5 Fine-grainedvs.Coarse-grainedSegmentation . . . . . . .161
+ 16.6 OSSupport . . . . . . . . . . . . . . . . . . . . . . . . . . .161
+ 16.7 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .163
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .164
+ Homework(Simulation) . . . . . . . . . . . . . . . . . . . . . . .165
+ 17 Free-SpaceManagement 167
+ 17.1 Assumptions . . . . . . . . . . . . . . . . . . . . . . . . . .168
+ 17.2 Low-levelMechanisms . . . . . . . . . . . . . . . . . . . .169
+ 17.3 BasicStrategies . . . . . . . . . . . . . . . . . . . . . . . . .177
+ 17.4 OtherApproaches . . . . . . . . . . . . . . . . . . . . . . .179
+ 17.5 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .181
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .182
+ Homework(Simulation) . . . . . . . . . . . . . . . . . . . . . . .183
+ 18Paging:Introduction 185
+ 18.1 ASimpleExampleAndOverview . . . . . . . . . . . . . .185
+ 18.2 WhereArePageTablesStored? . . . . . . . . . . . . . . . .189
+ 18.3 What’sActuallyInThePageTable? . . . . . . . . . . . . .190
+ 18.4 Paging:AlsoTooSlow. . . . . . . . . . . . . . . . . . . . .191
+ 18.5 AMemoryTrace . . . . . . . . . . . . . . . . . . . . . . . .192
+ 18.6 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .195
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .196
+ Homework(Simulation) . . . . . . . . . . . . . . . . . . . . . . .197
+ 19Paging:FasterTranslations(TLBs) 199
+ 19.1 TLBBasicAlgorithm. . . . . . . . . . . . . . . . . . . . . .199
+ 19.2 Example:AccessingAnArray . . . . . . . . . . . . . . . .201
+ 19.3 WhoHandlesTheTLBMiss? . . . . . . . . . . . . . . . . .203
+ 19.4 TLBContents:What’sInThere? . . . . . . . . . . . . . . .205
+ 19.5 TLBIssue:ContextSwitches . . . . . . . . . . . . . . . . .206
+ 19.6 Issue:ReplacementPolicy . . . . . . . . . . . . . . . . . . .208
+ OPERATING
+ SYSTEMS
+ [VERSION1.00] WWW.OSTEP.ORG
+CONTENTS xvii
+ 19.7 ARealTLBEntry. . . . . . . . . . . . . . . . . . . . . . . .209
+ 19.8 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .210
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .211
+ Homework(Measurement) . . . . . . . . . . . . . . . . . . . . . .212
+ 20Paging:SmallerTables 215
+ 20.1 SimpleSolution:BiggerPages . . . . . . . . . . . . . . . .215
+ 20.2 HybridApproach:PagingandSegments . . . . . . . . . .216
+ 20.3 Multi-levelPageTables . . . . . . . . . . . . . . . . . . . .219
+ 20.4 InvertedPageTables . . . . . . . . . . . . . . . . . . . . . .226
+ 20.5 SwappingthePageTablestoDisk . . . . . . . . . . . . . .227
+ 20.6 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .227
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .228
+ Homework(Simulation) . . . . . . . . . . . . . . . . . . . . . . .229
+ 21BeyondPhysicalMemory:Mechanisms 231
+ 21.1 SwapSpace . . . . . . . . . . . . . . . . . . . . . . . . . . .232
+ 21.2 ThePresentBit . . . . . . . . . . . . . . . . . . . . . . . . .233
+ 21.3 ThePageFault . . . . . . . . . . . . . . . . . . . . . . . . .234
+ 21.4 WhatIfMemoryIsFull? . . . . . . . . . . . . . . . . . . . .235
+ 21.5 PageFaultControlFlow. . . . . . . . . . . . . . . . . . . .236
+ 21.6 WhenReplacementsReallyOccur . . . . . . . . . . . . . .237
+ 21.7 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .238
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .239
+ Homework(Measurement) . . . . . . . . . . . . . . . . . . . . . .240
+ 22BeyondPhysicalMemory:Policies 243
+ 22.1 CacheManagement . . . . . . . . . . . . . . . . . . . . . .243
+ 22.2 TheOptimalReplacementPolicy . . . . . . . . . . . . . . .244
+ 22.3 ASimplePolicy:FIFO . . . . . . . . . . . . . . . . . . . . .246
+ 22.4 AnotherSimplePolicy:Random . . . . . . . . . . . . . . .248
+ 22.5 UsingHistory:LRU . . . . . . . . . . . . . . . . . . . . . .249
+ 22.6 WorkloadExamples . . . . . . . . . . . . . . . . . . . . . .250
+ 22.7 ImplementingHistoricalAlgorithms . . . . . . . . . . . . .253
+ 22.8 ApproximatingLRU . . . . . . . . . . . . . . . . . . . . . .254
+ 22.9 ConsideringDirtyPages . . . . . . . . . . . . . . . . . . . .255
+ 22.10OtherVMPolicies . . . . . . . . . . . . . . . . . . . . . . .256
+ 22.11Thrashing . . . . . . . . . . . . . . . . . . . . . . . . . . . .256
+ 22.12 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .257
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .258
+ Homework(Simulation) . . . . . . . . . . . . . . . . . . . . . . .259
+ 23CompleteVirtualMemorySystems 261
+ 23.1 VAX/VMSVirtualMemory . . . . . . . . . . . . . . . . . .262
+ 23.2 TheLinuxVirtualMemorySystem. . . . . . . . . . . . . .268
+ 23.3 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .277
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .278
+ c ⃝2008–18,ARPACI-DUSSEAU
+ THREE
+ EASY
+ PIECES
+xviii CONTENTS
+ 24SummaryDialogueonMemoryVirtualization 279
+ II Concurrency 283
+ 25ADialogueonConcurrency 285
+ 26Concurrency:AnIntroduction 287
+ 26.1 WhyUseThreads? . . . . . . . . . . . . . . . . . . . . . . .288
+ 26.2 AnExample:ThreadCreation . . . . . . . . . . . . . . . .289
+ 26.3 WhyItGetsWorse:SharedData . . . . . . . . . . . . . . .292
+ 26.4 TheHeartOfTheProblem:UncontrolledScheduling . . .294
+ 26.5 TheWishForAtomicity . . . . . . . . . . . . . . . . . . . .296
+ 26.6 OneMoreProblem:WaitingForAnother . . . . . . . . . .298
+ 26.7 Summary:WhyinOSClass? . . . . . . . . . . . . . . . . .298
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .300
+ Homework(Simulation) . . . . . . . . . . . . . . . . . . . . . . .301
+ 27 Interlude:ThreadAPI 303
+ 27.1 ThreadCreation . . . . . . . . . . . . . . . . . . . . . . . .303
+ 27.2 ThreadCompletion. . . . . . . . . . . . . . . . . . . . . . .304
+ 27.3 Locks . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .307
+ 27.4 ConditionVariables . . . . . . . . . . . . . . . . . . . . . .309
+ 27.5 CompilingandRunning . . . . . . . . . . . . . . . . . . . .311
+ 27.6 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .311
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .313
+ Homework(Code) . . . . . . . . . . . . . . . . . . . . . . . . . . .314
+ 28Locks 315
+ 28.1 Locks:TheBasicIdea . . . . . . . . . . . . . . . . . . . . .315
+ 28.2 PthreadLocks. . . . . . . . . . . . . . . . . . . . . . . . . .316
+ 28.3 BuildingALock . . . . . . . . . . . . . . . . . . . . . . . .317
+ 28.4 EvaluatingLocks . . . . . . . . . . . . . . . . . . . . . . . .317
+ 28.5 ControllingInterrupts . . . . . . . . . . . . . . . . . . . . .318
+ 28.6 AFailedAttempt: JustUsingLoads/Stores . . . . . . . . .319
+ 28.7 BuildingWorkingSpinLockswithTest-And-Set . . . . . .320
+ 28.8 EvaluatingSpinLocks . . . . . . . . . . . . . . . . . . . . .322
+ 28.9 Compare-And-Swap . . . . . . . . . . . . . . . . . . . . . .323
+ 28.10Load-LinkedandStore-Conditional . . . . . . . . . . . . .324
+ 28.11Fetch-And-Add. . . . . . . . . . . . . . . . . . . . . . . . .326
+ 28.12TooMuchSpinning:WhatNow? . . . . . . . . . . . . . . .327
+ 28.13ASimpleApproach: JustYield,Baby. . . . . . . . . . . . .328
+ 28.14UsingQueues:SleepingInsteadOfSpinning . . . . . . . .329
+ 28.15DifferentOS,DifferentSupport . . . . . . . . . . . . . . . .332
+ 28.16Two-PhaseLocks . . . . . . . . . . . . . . . . . . . . . . . .332
+ 28.17 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .334
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .335
+ OPERATING
+ SYSTEMS
+ [VERSION1.00] WWW.OSTEP.ORG
+CONTENTS xix
+ Homework(Simulation) . . . . . . . . . . . . . . . . . . . . . . .336
+ 29Lock-basedConcurrentDataStructures 337
+ 29.1 ConcurrentCounters. . . . . . . . . . . . . . . . . . . . . .337
+ 29.2 ConcurrentLinkedLists . . . . . . . . . . . . . . . . . . . .342
+ 29.3 ConcurrentQueues. . . . . . . . . . . . . . . . . . . . . . .345
+ 29.4 ConcurrentHashTable . . . . . . . . . . . . . . . . . . . .346
+ 29.5 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .348
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .349
+ Homework(Code) . . . . . . . . . . . . . . . . . . . . . . . . . . .350
+ 30ConditionVariables 351
+ 30.1 DefinitionandRoutines . . . . . . . . . . . . . . . . . . . .352
+ 30.2 TheProducer/Consumer(BoundedBuffer)Problem. . . .355
+ 30.3 CoveringConditions . . . . . . . . . . . . . . . . . . . . . .363
+ 30.4 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .364
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .365
+ Homework(Code) . . . . . . . . . . . . . . . . . . . . . . . . . . .366
+ 31Semaphores 367
+ 31.1 Semaphores:ADefinition . . . . . . . . . . . . . . . . . . .367
+ 31.2 BinarySemaphores(Locks) . . . . . . . . . . . . . . . . . .369
+ 31.3 SemaphoresForOrdering . . . . . . . . . . . . . . . . . . .370
+ 31.4 TheProducer/Consumer(BoundedBuffer)Problem. . . .372
+ 31.5 Reader-WriterLocks . . . . . . . . . . . . . . . . . . . . . .376
+ 31.6 TheDiningPhilosophers . . . . . . . . . . . . . . . . . . .378
+ 31.7 HowToImplementSemaphores . . . . . . . . . . . . . . .381
+ 31.8 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .382
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .383
+ Homework(Code) . . . . . . . . . . . . . . . . . . . . . . . . . . .384
+ 32CommonConcurrencyProblems 385
+ 32.1 WhatTypesOfBugsExist? . . . . . . . . . . . . . . . . . .385
+ 32.2 Non-DeadlockBugs . . . . . . . . . . . . . . . . . . . . . .386
+ 32.3 DeadlockBugs . . . . . . . . . . . . . . . . . . . . . . . . .389
+ 32.4 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .397
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .399
+ Homework(Code) . . . . . . . . . . . . . . . . . . . . . . . . . . .400
+ 33Event-basedConcurrency(Advanced) 401
+ 33.1 TheBasicIdea:AnEventLoop . . . . . . . . . . . . . . . .401
+ 33.2 AnImportantAPI:select()(orpoll()) . . . . . . . . .402
+ 33.3 Usingselect() . . . . . . . . . . . . . . . . . . . . . . . .403
+ 33.4 WhySimpler?NoLocksNeeded . . . . . . . . . . . . . . .404
+ 33.5 AProblem:BlockingSystemCalls . . . . . . . . . . . . . .405
+ 33.6 ASolution:AsynchronousI/O . . . . . . . . . . . . . . . .405
+ 33.7 AnotherProblem:StateManagement . . . . . . . . . . . .408
+ c ⃝2008–18,ARPACI-DUSSEAU
+ THREE
+ EASY
+ PIECES
+xx CONTENTS
+ 33.8 WhatIsStillDifficultWithEvents . . . . . . . . . . . . . .409
+ 33.9 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .409
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .410
+ Homework(Code) . . . . . . . . . . . . . . . . . . . . . . . . . . .411
+ 34SummaryDialogueonConcurrency 413
+ IIIPersistence 415
+ 35ADialogueonPersistence 417
+ 36 I/ODevices 419
+ 36.1 SystemArchitecture . . . . . . . . . . . . . . . . . . . . . .419
+ 36.2 ACanonicalDevice . . . . . . . . . . . . . . . . . . . . . .421
+ 36.3 TheCanonicalProtocol . . . . . . . . . . . . . . . . . . . .422
+ 36.4 LoweringCPUOverheadWithInterrupts . . . . . . . . . .423
+ 36.5 MoreEfficientDataMovementWithDMA . . . . . . . . .424
+ 36.6 MethodsOfDeviceInteraction . . . . . . . . . . . . . . . .425
+ 36.7 FittingIntoTheOS:TheDeviceDriver. . . . . . . . . . . .426
+ 36.8 CaseStudy:ASimpleIDEDiskDriver. . . . . . . . . . . .427
+ 36.9 HistoricalNotes . . . . . . . . . . . . . . . . . . . . . . . .430
+ 36.10 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .430
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .431
+ 37HardDiskDrives 433
+ 37.1 TheInterface . . . . . . . . . . . . . . . . . . . . . . . . . .433
+ 37.2 BasicGeometry . . . . . . . . . . . . . . . . . . . . . . . . .434
+ 37.3 ASimpleDiskDrive . . . . . . . . . . . . . . . . . . . . . .435
+ 37.4 I/OTime:DoingTheMath . . . . . . . . . . . . . . . . . .438
+ 37.5 DiskScheduling . . . . . . . . . . . . . . . . . . . . . . . .442
+ 37.6 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .446
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .447
+ Homework(Simulation) . . . . . . . . . . . . . . . . . . . . . . .448
+ 38RedundantArraysofInexpensiveDisks(RAIDs) 449
+ 38.1 InterfaceAndRAIDInternals . . . . . . . . . . . . . . . . .450
+ 38.2 FaultModel . . . . . . . . . . . . . . . . . . . . . . . . . . .451
+ 38.3 HowToEvaluateARAID. . . . . . . . . . . . . . . . . . .451
+ 38.4 RAIDLevel0:Striping. . . . . . . . . . . . . . . . . . . . .452
+ 38.5 RAIDLevel1:Mirroring. . . . . . . . . . . . . . . . . . . .455
+ 38.6 RAIDLevel4:SavingSpaceWithParity . . . . . . . . . . .458
+ 38.7 RAIDLevel5:RotatingParity . . . . . . . . . . . . . . . .462
+ 38.8 RAIDComparison:ASummary . . . . . . . . . . . . . . .463
+ 38.9 OtherInterestingRAIDIssues . . . . . . . . . . . . . . . .464
+ 38.10 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .464
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .465
+ OPERATING
+ SYSTEMS
+ [VERSION1.00] WWW.OSTEP.ORG
+CONTENTS xxi
+ Homework(Simulation) . . . . . . . . . . . . . . . . . . . . . . .466
+ 39 Interlude:FilesandDirectories 467
+ 39.1 FilesAndDirectories . . . . . . . . . . . . . . . . . . . . . .467
+ 39.2 TheFileSystemInterface . . . . . . . . . . . . . . . . . . .469
+ 39.3 CreatingFiles . . . . . . . . . . . . . . . . . . . . . . . . . .469
+ 39.4 ReadingAndWritingFiles . . . . . . . . . . . . . . . . . .470
+ 39.5 ReadingAndWriting,ButNotSequentially. . . . . . . . .472
+ 39.6 SharedFileTableEntries:fork()Anddup() . . . . . . .475
+ 39.7 WritingImmediatelyWithfsync() . . . . . . . . . . . . .477
+ 39.8 RenamingFiles . . . . . . . . . . . . . . . . . . . . . . . . .478
+ 39.9 GettingInformationAboutFiles . . . . . . . . . . . . . . .479
+ 39.10RemovingFiles . . . . . . . . . . . . . . . . . . . . . . . . .480
+ 39.11MakingDirectories . . . . . . . . . . . . . . . . . . . . . . .480
+ 39.12ReadingDirectories . . . . . . . . . . . . . . . . . . . . . .481
+ 39.13DeletingDirectories . . . . . . . . . . . . . . . . . . . . . .482
+ 39.14HardLinks . . . . . . . . . . . . . . . . . . . . . . . . . . .482
+ 39.15 SymbolicLinks . . . . . . . . . . . . . . . . . . . . . . . . .484
+ 39.16PermissionBitsAndAccessControlLists . . . . . . . . . .485
+ 39.17MakingAndMountingAFileSystem . . . . . . . . . . . .488
+ 39.18 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .490
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .491
+ Homework(Code) . . . . . . . . . . . . . . . . . . . . . . . . . . .492
+ 40 FileSystemImplementation 493
+ 40.1 TheWayToThink . . . . . . . . . . . . . . . . . . . . . . .493
+ 40.2 OverallOrganization. . . . . . . . . . . . . . . . . . . . . .494
+ 40.3 FileOrganization:TheInode . . . . . . . . . . . . . . . . .496
+ 40.4 DirectoryOrganization . . . . . . . . . . . . . . . . . . . .501
+ 40.5 FreeSpaceManagement . . . . . . . . . . . . . . . . . . . .501
+ 40.6 AccessPaths:ReadingandWriting. . . . . . . . . . . . . .502
+ 40.7 CachingandBuffering . . . . . . . . . . . . . . . . . . . . .506
+ 40.8 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .508
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .509
+ Homework(Simulation) . . . . . . . . . . . . . . . . . . . . . . .510
+ 41LocalityandTheFastFileSystem 511
+ 41.1 TheProblem:PoorPerformance . . . . . . . . . . . . . . .511
+ 41.2 FFS:DiskAwarenessIsTheSolution . . . . . . . . . . . . .513
+ 41.3 OrganizingStructure:TheCylinderGroup . . . . . . . . .513
+ 41.4 Policies:HowToAllocateFilesandDirectories . . . . . . .515
+ 41.5 MeasuringFileLocality . . . . . . . . . . . . . . . . . . . .517
+ 41.6 TheLarge-FileException . . . . . . . . . . . . . . . . . . .518
+ 41.7 AFewOtherThingsAboutFFS. . . . . . . . . . . . . . . .520
+ 41.8 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .522
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .523
+ Homework(Simulation) . . . . . . . . . . . . . . . . . . . . . . .524
+ c ⃝2008–18,ARPACI-DUSSEAU
+ THREE
+ EASY
+ PIECES
+xxii CONTENTS
+ 42CrashConsistency:FSCKandJournaling 525
+ 42.1 ADetailedExample . . . . . . . . . . . . . . . . . . . . . .526
+ 42.2 Solution#1:TheFileSystemChecker . . . . . . . . . . . .529
+ 42.3 Solution#2: Journaling(orWrite-AheadLogging) . . . . .531
+ 42.4 Solution#3:OtherApproaches . . . . . . . . . . . . . . . .541
+ 42.5 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .542
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .543
+ Homework(Simulation) . . . . . . . . . . . . . . . . . . . . . . .545
+ 43Log-structuredFileSystems 547
+ 43.1 WritingToDiskSequentially . . . . . . . . . . . . . . . . .548
+ 43.2 WritingSequentiallyAndEffectively. . . . . . . . . . . . .549
+ 43.3 HowMuchToBuffer? . . . . . . . . . . . . . . . . . . . . .550
+ 43.4 Problem:FindingInodes . . . . . . . . . . . . . . . . . . .551
+ 43.5 SolutionThroughIndirection:TheInodeMap . . . . . . .551
+ 43.6 CompletingTheSolution:TheCheckpointRegion . . . . .553
+ 43.7 ReadingAFileFromDisk:ARecap . . . . . . . . . . . . .553
+ 43.8 WhatAboutDirectories? . . . . . . . . . . . . . . . . . . .554
+ 43.9 ANewProblem:GarbageCollection. . . . . . . . . . . . .555
+ 43.10DeterminingBlockLiveness. . . . . . . . . . . . . . . . . .556
+ 43.11APolicyQuestion:WhichBlocksToClean,AndWhen? . .557
+ 43.12CrashRecoveryAndTheLog . . . . . . . . . . . . . . . . .558
+ 43.13 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .558
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .560
+ Homework(Simulation) . . . . . . . . . . . . . . . . . . . . . . .561
+ 44 Flash-basedSSDs 563
+ 44.1 StoringaSingleBit . . . . . . . . . . . . . . . . . . . . . . .563
+ 44.2 FromBitstoBanks/Planes . . . . . . . . . . . . . . . . . .564
+ 44.3 BasicFlashOperations . . . . . . . . . . . . . . . . . . . . .565
+ 44.4 FlashPerformanceAndReliability . . . . . . . . . . . . . .567
+ 44.5 FromRawFlashtoFlash-BasedSSDs . . . . . . . . . . . .568
+ 44.6 FTLOrganization:ABadApproach . . . . . . . . . . . . .569
+ 44.7 ALog-StructuredFTL . . . . . . . . . . . . . . . . . . . . .570
+ 44.8 GarbageCollection . . . . . . . . . . . . . . . . . . . . . . .572
+ 44.9 MappingTableSize . . . . . . . . . . . . . . . . . . . . . .574
+ 44.10WearLeveling . . . . . . . . . . . . . . . . . . . . . . . . .579
+ 44.11 SSDPerformanceAndCost . . . . . . . . . . . . . . . . . .579
+ 44.12 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .581
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .583
+ Homework(Simulation) . . . . . . . . . . . . . . . . . . . . . . .585
+ 45DataIntegrityandProtection 587
+ 45.1 DiskFailureModes. . . . . . . . . . . . . . . . . . . . . . .587
+ 45.2 HandlingLatentSectorErrors . . . . . . . . . . . . . . . .589
+ 45.3 DetectingCorruption:TheChecksum . . . . . . . . . . . .590
+ 45.4 UsingChecksums . . . . . . . . . . . . . . . . . . . . . . .593
+ OPERATING
+ SYSTEMS
+ [VERSION1.00] WWW.OSTEP.ORG
+CONTENTS xxiii
+ 45.5 ANewProblem:MisdirectedWrites . . . . . . . . . . . . .594
+ 45.6 OneLastProblem:LostWrites . . . . . . . . . . . . . . . .595
+ 45.7 Scrubbing . . . . . . . . . . . . . . . . . . . . . . . . . . . .595
+ 45.8 OverheadsOfChecksumming . . . . . . . . . . . . . . . .596
+ 45.9 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .596
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .597
+ Homework(Simulation) . . . . . . . . . . . . . . . . . . . . . . .598
+ Homework(Code) . . . . . . . . . . . . . . . . . . . . . . . . . . .599
+ 46SummaryDialogueonPersistence 601
+ 47ADialogueonDistribution 603
+ 48DistributedSystems 605
+ 48.1 CommunicationBasics. . . . . . . . . . . . . . . . . . . . .606
+ 48.2 UnreliableCommunicationLayers . . . . . . . . . . . . . .607
+ 48.3 ReliableCommunicationLayers . . . . . . . . . . . . . . .609
+ 48.4 CommunicationAbstractions . . . . . . . . . . . . . . . . .611
+ 48.5 RemoteProcedureCall(RPC) . . . . . . . . . . . . . . . . .613
+ 48.6 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .618
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .619
+ Homework(Code) . . . . . . . . . . . . . . . . . . . . . . . . . . .620
+ 49Sun’sNetworkFileSystem(NFS) 621
+ 49.1 ABasicDistributedFileSystem. . . . . . . . . . . . . . . .622
+ 49.2 OnToNFS. . . . . . . . . . . . . . . . . . . . . . . . . . . .623
+ 49.3 Focus:SimpleAndFastServerCrashRecovery. . . . . . .623
+ 49.4 KeyToFastCrashRecovery:Statelessness . . . . . . . . .624
+ 49.5 TheNFSv2Protocol . . . . . . . . . . . . . . . . . . . . . .625
+ 49.6 FromProtocolToDistributedFileSystem . . . . . . . . . .627
+ 49.7 HandlingServerFailureWithIdempotentOperations . . .629
+ 49.8 ImprovingPerformance:Client-sideCaching . . . . . . . .631
+ 49.9 TheCacheConsistencyProblem . . . . . . . . . . . . . . .631
+ 49.10AssessingNFSCacheConsistency . . . . . . . . . . . . . .633
+ 49.11 ImplicationsOnServer-SideWriteBuffering . . . . . . . .633
+ 49.12 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .635
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .637
+ Homework(Measurement) . . . . . . . . . . . . . . . . . . . . . .638
+ 50TheAndrewFileSystem(AFS) 639
+ 50.1 AFSVersion1 . . . . . . . . . . . . . . . . . . . . . . . . . .639
+ 50.2 ProblemswithVersion1 . . . . . . . . . . . . . . . . . . . .641
+ 50.3 ImprovingtheProtocol . . . . . . . . . . . . . . . . . . . .642
+ 50.4 AFSVersion2 . . . . . . . . . . . . . . . . . . . . . . . . . .642
+ 50.5 CacheConsistency . . . . . . . . . . . . . . . . . . . . . . .644
+ 50.6 CrashRecovery . . . . . . . . . . . . . . . . . . . . . . . . .646
+ 50.7 ScaleAndPerformanceOfAFSv2 . . . . . . . . . . . . . .646
+ c ⃝2008–18,ARPACI-DUSSEAU
+ THREE
+ EASY
+ PIECES
+xxiv CONTENTS
+ 50.8 AFS:OtherImprovements. . . . . . . . . . . . . . . . . . .649
+ 50.9 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . .650
+ References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .651
+ Homework(Simulation) . . . . . . . . . . . . . . . . . . . . . . .652
+ 51SummaryDialogueonDistribution 653
+ GeneralIndex 655
+ Asides 667
+ Tips 671
+ Cruces 675

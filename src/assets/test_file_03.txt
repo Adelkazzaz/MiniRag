@@ -1,1 +1,143 @@
-test this file is here
+ Professor: Welcometothisbook! It’s called Operating SystemsinThreeEasy
+ Pieces, and I am here to teach you the things you need to know about operating
+ systems. I am called “Professor”; who are you?
+ Student: Hi Professor! I am called “Student”, as you might have guessed. And
+ I am here and ready to learn!
+ Professor: Sounds good. Any questions?
+ Student: Sure! Why is it called “Three Easy Pieces”?
+ Professor: That’s an easy one. Well, you see, there are these great lectures on
+ Physics by Richard Feynman...
+ Student: Oh! Theguywhowrote“SurelyYou’reJoking, Mr. Feynman”, right?
+ Great book! Is this going to be hilarious like that book was?
+ Professor: Um... well, no. That book was great, and I’m glad you’ve read it.
+ Hopefully this book is more like his notes on Physics. Some of the basics were
+ summed up in a book called “Six Easy Pieces”. He was talking about Physics;
+ we’re going to do Three Easy Pieces on the fine topic of Operating Systems. This
+ is appropriate, as Operating Systems are about half as hard as Physics.
+ Student: Well, I liked physics, so that is probably good. What are those pieces?
+ Professor: They are the three key ideas we’re going to learn about: virtualiza
+tion, concurrency, and persistence. In learning about these ideas, we’ll learn
+ all about how an operating system works, including how it decides what program
+ to run next on a CPU, howit handles memory overload in a virtual memory sys
+tem, how virtual machine monitors work, how to manage information on disks,
+ and even a little about how to build a distributed system that works when parts
+ have failed. That sort of stuff.
+ Student: I have no idea what you’re talking about, really.
+ Professor: Good! That means you are in the right class.
+ Student: I have another question: what’s the best way to learn this stuff?
+ 1
+2
+ ADIALOGUE ON THE BOOK
+ Professor: Excellent query! Well, each person needs to figure this out on their
+ own, of course, but here is what I would do: go to class, to hear the professor
+ introduce the material. Then, at the end of every week, read these notes, to help
+ the ideas sink into your head a bit better. Of course, some time later (hint: before
+ the exam!), read the notes again to firm up your knowledge. Of course, your pro
+fessor will no doubt assign some homeworks and projects, so you should do those;
+ in particular, doing projects where you write real code to solve real problems is
+ the best way to put the ideas within these notes into action. As Confucius said...
+ Student: Oh, I know! ’I hear and I forget. I see and I remember. I do and I
+ understand.’ Or something like that.
+ Professor: (surprised) How did you know what I was going to say?!
+ Student: It seemed to follow. Also, I am a big fan of Confucius, and an even
+ bigger fan of Xunzi, who actually is a better source for this quote1.
+ Professor: (stunned) Well, I think we are going to get along just fine! Just fine
+ indeed.
+ Student: Professor– just one more question, if I may. What are these dialogues
+ for? I mean, isn’t this just supposed to be a book? Why not present the material
+ directly?
+ Professor: Ah, good question, good question! Well, I think it is sometimes
+ useful to pull yourself outside of a narrative and think a bit; these dialogues are
+ those times. So you and I are going to work together to make sense of all of these
+ pretty complex ideas. Are you up for it?
+ Student: So we have to think? Well, I’m up for that. I mean, what else do I have
+ to do anyhow? It’s not like I have much of a life outside of this book.
+ Professor: Me neither, sadly. So let’s get to work!
+ 1According to http://www.barrypopik.com (on, December 19, 2012, entitled “Tell
+ me and I forget; teach me and I may remember; involve me and I will learn”) Confucian
+ philosopher Xunzi said “Nothavingheardsomethingisnotasgoodashavingheardit; having
+ heard it is not as good as having seen it; having seen it is not as good as knowing it; knowing
+ it is not as good as putting it into practice.” Later on, the wisdom got attached to Confucius
+ for some reason. Thanks to Jiao Dong (Rutgers) for telling us!
+ OPERATING
+ SYSTEMS
+ WWW.OSTEP.ORG
+ [VERSION 1.01]
+2
+ Introduction to Operating Systems
+ If you are taking an undergraduate operating systems course, you should
+ already have some idea of what a computer program does when it runs.
+ If not, this book (and the corresponding course) is going to be difficult
+ —so you should probably stop reading this book, or run to the near
+est bookstore and quickly consume the necessary background material
+ before continuing (both Patt & Patel [PP03] and Bryant & O’Hallaron
+ [BOH10] are pretty great books).
+ So what happens when a program runs?
+ Well, a running program does one very simple thing: it executes in
+structions. Many millions (and these days, even billions) of times ev
+ery second, the processor fetches an instruction from memory, decodes
+ it (i.e., figures out which instruction this is), and executes it (i.e., it does
+ the thing that it is supposed to do, like add two numbers together, access
+ memory, check a condition, jump to a function, and so forth). After it is
+ donewiththisinstruction, the processor moves on to the next instruction,
+ and so on, and so on, until the program finally completes1.
+ Thus, wehavejust described the basics of the Von Neumannmodelof
+ computing2. Sounds simple, right? But in this class, we will be learning
+ that while a program runs, a lot of other wild things are going on with
+ the primary goal of making the system easy to use.
+ There is a body of software, in fact, that is responsible for making it
+ easy to run programs (even allowing you to seemingly run many at the
+ same time), allowing programs to share memory, enabling programs to
+ interact with devices, and other fun stuff like that. That body of software
+ 1Of course, modern processors do many bizarre and frightening things underneath the
+ hoodtomakeprogramsrunfaster, e.g., executing multiple instructions at once, and even issu
+ing and completing them out of order! But that is not our concern here; we are just concerned
+ with the simple model most programs assume: that instructions seemingly execute one at a
+ time, in an orderly and sequential fashion.
+ 2Von Neumannwasoneoftheearlypioneers of computing systems. He also did pioneer
+ing work on game theory and atomic bombs, and played in the NBA for six years. OK, one of
+ those things isn’t true.
+ 1
+2 INTRODUCTIONTOOPERATINGSYSTEMS
+ THECRUXOFTHEPROBLEM:
+ HOWTOVIRTUALIZERESOURCES
+ Onecentralquestionwewillanswer inthisbookisquitesimple: how
+ doestheoperatingsystemvirtualizeresources? Thisisthecruxofour
+ problem.WhytheOSdoesthisisnotthemainquestion,astheanswer
+ shouldbeobvious: itmakesthesystemeasiertouse.Thus,wefocuson
+ thehow:whatmechanismsandpoliciesareimplementedbytheOSto
+ attainvirtualization?HowdoestheOSdosoefficiently?Whathardware
+ supportisneeded?
+ Wewillusethe“cruxoftheproblem”, inshadedboxessuchasthisone,
+ asawaytocalloutspecificproblemswearetryingtosolveinbuilding
+ anoperatingsystem.Thus,withinanoteonaparticulartopic,youmay
+ findoneormorecruces(yes,thisistheproperplural)whichhighlightthe
+ problem. Thedetailswithinthechapter,ofcourse,presentthesolution,
+ oratleastthebasicparametersofasolution.
+ iscalledtheoperatingsystem(OS)3,asitisinchargeofmakingsurethe
+ systemoperatescorrectlyandefficientlyinaneasy-to-usemanner.
+ TheprimarywaytheOSdoesthisisthroughageneraltechniquethat
+ wecallvirtualization.Thatis,theOStakesaphysicalresource(suchas
+ theprocessor,ormemory,oradisk)andtransformsit intoamoregen
+eral,powerful,andeasy-to-usevirtualformofitself.Thus,wesometimes
+ refertotheoperatingsystemasavirtualmachine.
+ Ofcourse, inordertoallowuserstotell theOSwhattodoandthus
+ makeuseofthefeaturesofthevirtualmachine(suchasrunningapro
+gram, orallocatingmemory, oraccessingafile), theOSalsoprovides
+ someinterfaces(APIs) thatyoucancall. AtypicalOS, infact, exports
+ afewhundredsystemcallsthatareavailabletoapplications. Because
+ theOSprovidesthesecallstorunprograms,accessmemoryanddevices,
+ andotherrelatedactions,wealsosometimessaythattheOSprovidesa
+ standardlibrarytoapplications.
+ Finally,becausevirtualizationallowsmanyprogramstorun(thusshar
+ingtheCPU),andmanyprogramstoconcurrentlyaccesstheirownin
+structionsanddata(thussharingmemory),andmanyprogramstoaccess
+ devices(thussharingdisksandsoforth),theOSissometimesknownas
+ aresourcemanager. Eachof theCPU,memory,anddiskisaresource
+ ofthesystem; it isthustheoperatingsystem’sroletomanagethosere
+sources,doingsoefficientlyorfairlyorindeedwithmanyotherpossible
+ goalsinmind.TounderstandtheroleoftheOSalittlebitbetter,let’stake
+ alookatsomeexamples.
+ 3AnotherearlynamefortheOSwasthesupervisororeventhemastercontrolprogram.
+ Apparently, thelattersoundedalittleoverzealous(seethemovieTronfordetails)andthus,
+ thankfully,“operatingsystem”caughtoninstead.

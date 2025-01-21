@@ -1,1 +1,161 @@
-3alawe 7beb klb abu Husiun
+To Everyone
+ Welcome to this book! We hope you’ll enjoy reading it as much as we enjoyed
+ writing it. The book is called Operating Systems: Three Easy Pieces (available
+ at http://www.ostep.org), and the title is obviously an homage to one of the
+ greatest sets of lecture notes ever created, by one Richard Feynman on the topic of
+ Physics [F96]. While this book will undoubtedly fall short of the high standard set
+ by that famous physicist, perhaps it will be good enough for you in your quest to
+ understand what operating systems (and more generally, systems) are all about.
+ The three easy pieces refer to the three major thematic elements the book is
+ organized around: virtualization, concurrency, andpersistence. In discussing
+ these concepts, we’ll end up discussing most of the important things an operating
+ system does; hopefully, you’ll also have some fun along the way. Learning new
+ things is fun, right? At least, it should be.
+ Each major concept is divided into a set of chapters, most of which present a
+ particular problem and then show how to solve it. The chapters are short, and try
+ (as best as possible) to reference the source material where the ideas really came
+ from. One of our goals in writing this book is to make the paths of history as clear
+ as possible, as we think that helps a student understand what is,whatwas,and
+ what will be more clearly. In this case, seeing how the sausage was made is nearly
+ as important as understanding what the sausage is good for1.
+ There are a couple devices we use throughout the book which are probably
+ worth introducing here. The first is the crux of the problem. Anytime we are
+ trying to solve a problem, we first try to state what the most important issue is;
+ such a crux of the problem is explicitly called out in the text, and hopefully solved
+ via the techniques, algorithms, and ideas presented in the rest of the text.
+ In many places, we’ll explain how a system works by showing its behavior
+ over time. These timelines are at the essence of understanding; if you know what
+ happens, for example, when a process page faults, you are on your way to truly
+ understanding howvirtualmemoryoperates. Ifyoucomprehendwhattakesplace
+ when ajournaling file system writes a block to disk, you have taken the first steps
+ towards mastery of storage systems.
+ There are also numerous asides and tips throughout the text, adding a little
+ color to the mainline presentation. Asides tend to discuss something relevant (but
+ perhaps not essential) to the main text; tips tend to be general lessons that can be
+ 1Hint: eating! Or if you’re a vegetarian, running away from.
+ iii
+iv
+ applied to systems you build. An index at the end of the book lists all of these tips
+ and asides (as well as cruces, the odd plural of crux) for your convenience.
+ Weuse one of the oldest didactic methods, the dialogue, throughout the book,
+ as a way of presenting some of the material in a different light. These are used to
+ introduce the major thematic concepts (in a peachy way, as we willsee),aswellas
+ to review material every now and then. They are also a chance to write in a more
+ humorous style. Whether you find them useful, or humorous, well, that’sanother
+ matter entirely.
+ Atthebeginningofeachmajorsection, we’ll first present an abstraction that an
+ operating system provides, and then work in subsequent chapters on the mecha
+nisms, policies, and other support needed to provide the abstraction. Abstractions
+ are fundamental to all aspects of Computer Science, so it is perhaps no surprise
+ that they are also essential in operating systems.
+ Throughout the chapters, we try to use real code (not pseudocode)wherepos
+sible, so for virtually all examples, you should be able to type themupyourselfand
+ run them. Running real code on real systems is the best way to learn about operat
+ing systems, so weencourageyoutodosowhenyoucan. Wearealsomakingcode
+ available at https://github.com/remzi-arpacidusseau/ostep-code for
+ your viewing pleasure.
+ In various parts of the text, we have sprinkled in a few homeworks to ensure
+ that you are understanding what is going on. Many of these homeworks are little
+ simulations of pieces of the operating system; you should download the home
+works, and run them to quiz yourself. The homework simulators have the follow
+ing feature: by giving them a different random seed, you can generate a virtually
+ infinite set of problems; the simulators can also be told to solve the problems for
+ you. Thus, you can test and re-test yourself until you have achieved a good level
+ of understanding.
+ The most important addendum to this book is a set of projects in which you
+ learn about how real systems work by designing, implementing, and testing your
+ own code. All projects (as well as the code examples, mentioned above) are in
+ the Cprogramminglanguage[KR88]; C is a simple and powerful language that
+ underlies most operating systems, and thus worth adding to your tool-chest of
+ languages. Two types of projects are available (see the onlineappendixforideas).
+ The first are systems programming projects; these projects are great for those who
+ are new to C and UNIX and want to learn how to do low-level C programming.
+ The second type are based on a real operating system kernel developed at MIT
+ called xv6 [CK+08]; these projects are great for students that already have some C
+ andwanttogettheirhandsdirtyinsidetheOS.AtWisconsin, we’verunthecourse
+ in three different ways: either all systems programming, all xv6 programming, or
+ a mix of both.
+ We are slowly making project descriptions, and a testing framework, avail
+able. See https://github.com/remzi-arpacidusseau/ostep-projects
+ for more information. If not part of a class, this will give you a chance to do these
+ projects on your own, to better learn the material. Unfortunately, you don’t have
+ a TA to bug when you get stuck, but not everything in life can be free (but books
+ can be!).
+ OPERATING
+ SYSTEMS
+ WWW.OSTEP.ORG
+ [VERSION 1.00]
+v
+ To Educators
+ If you are an instructor or professor who wishes to use this book,pleasefeel
+ free to do so. As you may have noticed, they are free and availableon-linefrom
+ the following web page:
+ http://www.ostep.org
+ You can also purchase a printed copy from lulu.com.Lookforitontheweb
+ page above.
+ The (current) proper citation for the book is as follows:
+ Operating Systems: Three Easy Pieces
+ Remzi H. Arpaci-Dusseau and Andrea C. Arpaci-Dusseau
+ Arpaci-Dusseau Books
+ August, 2018 (Version 1.00)
+ http://www.ostep.org
+ The course divides fairly well across a 15-week semester, in which you can
+ cover most of the topics within at a reasonable level of depth. Cramming the
+ course into a 10-week quarter probably requires dropping some detail from each
+ of the pieces. There are also a few chapters on virtual machine monitors, which we
+ usually squeeze in sometime during the semester, either right at end of the large
+ section on virtualization, or near the end as an aside.
+ One slightly unusual aspect of the book is that concurrency, a topic at the front
+ of many OSbooks, is pushed off herein until the student has built an understand
+ing of virtualization of the CPU and of memory. In our experience in teaching
+ this course for nearly 20 years, students have a hard time understanding how the
+ concurrency problem arises, or why they are trying to solve it, if they don’t yet un
+derstand what an address space is, what a process is, or why context switches can
+ occur at arbitrary points in time. Once they do understand these concepts, how
+ever, introducing the notion of threads and the problems that arise due to them
+ becomes rather easy, or at least, easier.
+ As much as is possible, we use a chalkboard (or whiteboard) to deliver a lec
+ture. On these more conceptual days, we come to class with a few major ideas
+ and examples in mind and use the board to present them. Handouts are useful
+ to give the students concrete problems to solve based on the material. On more
+ practical days, we simply plug a laptop into the projector and show real code; this
+ style works particularly well for concurrency lectures as well as for any discus
+sion sections where you show students code that is relevant fortheirprojects.We
+ don’t generally use slides to present material, but have now made asetavailable
+ for those who prefer that style of presentation.
+ If you’d like a copy of any of these materials, please drop us an email. We
+ have already shared them with many others around the world, and others have
+ contributed their materials as well.
+ One last request: if you use the free online chapters, please just link to them,
+ instead of making a local copy. This helps us track usage (over 1 million chapters
+ downloaded in the past few years!) and also ensures students getthelatest(and
+ greatest?) version.
+ c
+ ⃝2008–18, ARPACI-DUSSEAU
+ THREE
+ EASY
+ PIECES
+vi
+ To Students
+ If you are a student reading this book, thank you! It is an honor for us to
+ provide some material to help you in your pursuit of knowledge about operating
+ systems. Weboththinkbackfondlytowardssometextbooksofourundergraduate
+ days (e.g., Hennessy and Patterson [HP90], the classic book on computer architec
+ture) and hope this book will become one of those positive memories for you.
+ Youmayhavenoticedthisbookisfreeandavailableonline2. Thereisonemajor
+ reason for this: textbooks are generally too expensive. This book, we hope, is the
+ f
+ irst of a new wave of free materials to help those in pursuit of their education,
+ regardless of whichpartoftheworldtheycomefromorhowmuchtheyarewilling
+ to spend for a book. Failing that, it is one free book, which is better than none.
+ We also hope, where possible, to point you to the original sources of much
+ of the material in the book: the great papers and persons who have shaped the
+ f
+ ield of operating systems over the years. Ideas are not pulled out of the air; they
+ come from smart and hard-working people (including numerous Turing-award
+ winners3), and thus we should strive to celebrate those ideas and people where
+ possible. In doing so, we hopefully can better understand the revolutions that
+ have taken place, instead of writing texts as if those thoughts have always been
+ present [K62]. Further, perhaps such references will encourageyoutodigdeeper
+ on your own; reading the famous papers of our field is certainly one of the best
+ ways to learn.
