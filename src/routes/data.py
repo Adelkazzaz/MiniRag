@@ -94,6 +94,16 @@ async def process_endpoint(request: Request, project_id: str, process_request: P
     overlap_size = process_request.overlap_size
     do_reset = process_request.do_reset
     
+    # Validate chunk_size and overlap_size
+    if chunk_size <= 0 or overlap_size < 0 or overlap_size >= chunk_size:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={
+                "signal": ResponseSignal.INVALID_PARAMETERS.value,
+                "message": "chunk_size must be greater than 0 and overlap_size must be non-negative."
+            }
+        )
+    
     project_model = await ProjectModel.create_instance(
         db_client= request.app.db_client
     )
