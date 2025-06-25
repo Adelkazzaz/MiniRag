@@ -11,21 +11,22 @@ class Settings(BaseSettings):
     MONGODB_URL: str
     MONGODB_DATABASE: str
     # <====================== llm config ===========================>
-    GENERATION_MODEL: str = None
-    EMBEDDING_MODEL: str = None
+    GENERATION_PROVIDER: str
+    EMBEDDING_PROVIDER: str
+    
     GENERATION_MODEL_ID: str = None
     EMBEDDING_MODEL_ID: str = None
-    EMBEDDING_MODEL_SIZE: int
-    INPUT_DAFAULT_MAX_CHARACTERS: int
-    GENERATION_DAFAULT_MAX_TOKENS: int 
-    GENERATION_DAFAULT_TEMPERATURE: float 
+    EMBEDDING_MODEL_SIZE: int = None
+    INPUT_DAFAULT_MAX_CHARACTERS: int = None
+    GENERATION_DAFAULT_MAX_TOKENS: int = None
+    GENERATION_DAFAULT_TEMPERATURE: float = None
     # <=================================================>
     # <====================== llm openai config ===========================>
-    OPENAI_API_KEY: str
-    OPENAI_API_URL: str
+    OPENAI_API_KEY: str = None
+    OPENAI_API_URL: str = None
     # <=================================================>
     # <====================== llm cohere config ===========================>
-    COHERE_API_KEY: str
+    COHERE_API_KEY: str = None
     
     class Config:
         env_file = ".env"
